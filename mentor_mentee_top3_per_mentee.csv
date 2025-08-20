@@ -1,0 +1,58 @@
+Mentee,Mentee Email,Mentor,Mentor Email,Score,Shared Hobbies (Exact),Same School,Year Gap,MBTI Mentor/Mentee,Goals (Mentor←Mentee),BRK::pref_gender,BRK::pref_eth,BRK::mentor_pref_gender,BRK::mentor_pref_eth,BRK::same_school,BRK::year_proximity,BRK::hobby_overlap_exact,BRK::mbti,BRK::goals_rule,BRK::goals_semantic,BRK::interests_semantic
+Alex Brown,alex.brown@rutgers.edu,Morgan Williams,morgan.williams@stanford.edu,65.0,"Basketball, Coding",False,0,ISFJ / ESTJ,Improve leadership ← Prepare for grad school,0,0,15.0,0.0,0,20,20,10,0,0.0,0.0
+Alex Brown,alex.brown@rutgers.edu,Sam Williams,sam.williams@stanford.edu,53.0,Gaming,False,0,INTJ / ESTJ,Improve leadership ← Prepare for grad school,0,0,0.0,15.0,0,20,10,8,0,0.0,0.0
+Alex Brown,alex.brown@rutgers.edu,Sam Garcia,sam.garcia@mit.edu,53.0,"Coding, Gaming",False,0,INTP / ESTJ,Prepare for grad school ← Prepare for grad school,0,0,0.0,0.0,0,20,20,5,8,0.0,0.0
+Chris Khan,chris.khan@rutgers.edu,Sam Garcia,sam.garcia@mit.edu,104.0,,False,1,ENFP / ENTJ,Improve leadership ← Publish research,30,30,0.0,15.0,0,20,0,9,0,0.0,0.0
+Chris Khan,chris.khan@rutgers.edu,Jordan Smith,jordan.smith@rutgers.edu,85.0,Volunteering,True,2,INFJ / ENTJ,Publish research ← Publish research,0,0,15.0,0.0,20,20,10,12,8,0.0,0.0
+Chris Khan,chris.khan@rutgers.edu,Sam Garcia,sam.garcia@mit.edu,73.0,Coding,True,3,INTP / ENTJ,Prepare for grad school ← Publish research,30,0,0.0,0.0,20,0,10,9,4,0.0,0.0
+Chris Williams,chris.williams@mit.edu,Sam Garcia,sam.garcia@mit.edu,81.0,Traveling,True,0,ENFP / INFJ,Improve leadership ← Network more,0,0,0.0,15.0,20,20,10,12,4,0.0,0.0
+Chris Williams,chris.williams@mit.edu,Jordan Smith,jordan.smith@rutgers.edu,53.0,Volunteering,False,1,INFJ / INFJ,Publish research ← Network more,0,0,15.0,0.0,0,20,10,8,0,0.0,0.0
+Chris Williams,chris.williams@mit.edu,Sam Williams,sam.williams@rutgers.edu,53.0,Music,False,2,INTP / INFJ,Get into tech ← Network more,0,0,0.0,15.0,0,20,10,8,0,0.0,0.0
+Jamie Patel,jamie.patel@stanford.edu,Sam Williams,sam.williams@rutgers.edu,75.0,Gaming,False,2,INTP / ENFJ,Get into tech ← Get into tech,30,0,0.0,0.0,0,20,10,7,8,0.0,0.0
+Jamie Patel,jamie.patel@stanford.edu,Jamie Khan,jamie.khan@stanford.edu,71.0,,False,1,ISFP / ENFJ,Network more ← Get into tech,30,0,15.0,0.0,0,20,0,6,0,0.0,0.0
+Jamie Patel,jamie.patel@stanford.edu,Sam Williams,sam.williams@stanford.edu,70.0,Gaming,False,2,INTJ / ENFJ,Improve leadership ← Get into tech,30,0,0.0,0.0,0,20,10,10,0,0.0,0.0
+Jamie Williams,jamie.williams@rutgers.edu,Jordan Smith,jordan.smith@rutgers.edu,88.0,,True,1,INFJ / INFP,Publish research ← Publish research,30,0,0.0,0.0,20,20,0,10,8,0.0,0.0
+Jamie Williams,jamie.williams@rutgers.edu,Sam Garcia,sam.garcia@mit.edu,73.0,"Coding, Gaming",True,0,INTP / INFP,Prepare for grad school ← Publish research,0,0,0.0,0.0,20,20,20,9,4,0.0,0.0
+Jamie Williams,jamie.williams@rutgers.edu,Sam Garcia,sam.garcia@mit.edu,71.0,Basketball,False,2,ENFP / INFP,Improve leadership ← Publish research,0,0,15.0,15.0,0,20,10,11,0,0.0,0.0
+Jordan Garcia,jordan.garcia@mit.edu,Sam Garcia,sam.garcia@mit.edu,131.0,Traveling,True,1,INTP / ESTP,Prepare for grad school ← Start a business,30,30,15.0,0.0,20,20,10,6,0,0.0,0.0
+Jordan Garcia,jordan.garcia@mit.edu,Sam Garcia,sam.garcia@mit.edu,85.0,Traveling,False,1,ENFP / ESTP,Improve leadership ← Start a business,30,0,0.0,15.0,0,20,10,10,0,0.0,0.0
+Jordan Garcia,jordan.garcia@mit.edu,Sam Williams,sam.williams@rutgers.edu,71.0,,False,1,INTP / ESTP,Get into tech ← Start a business,0,30,0.0,15.0,0,20,0,6,0,0.0,0.0
+Jordan Lee,jordan.lee@stanford.edu,Morgan Chen,morgan.chen@stanford.edu,99.0,Basketball,False,3,ESTP / INFP,Improve leadership ← Improve leadership,30,30,15.0,0.0,0,0,10,6,8,0.0,0.0
+Jordan Lee,jordan.lee@stanford.edu,Jordan Smith,jordan.smith@rutgers.edu,80.0,,True,1,INFJ / INFP,Publish research ← Improve leadership,0,30,0.0,0.0,20,20,0,10,0,0.0,0.0
+Jordan Lee,jordan.lee@stanford.edu,Sam Williams,sam.williams@rutgers.edu,69.0,Reading,False,0,INTP / INFP,Get into tech ← Improve leadership,30,0,0.0,0.0,0,20,10,9,0,0.0,0.0
+Jordan Patel,jordan.patel@rutgers.edu,Sam Patel,sam.patel@rutgers.edu,83.0,,False,2,ISTJ / ENFP,Network more ← Get into tech,30,0,15.0,15.0,0,20,0,3,0,0.0,0.0
+Jordan Patel,jordan.patel@rutgers.edu,Morgan Williams,morgan.williams@stanford.edu,76.0,"Basketball, Coding, Volunteering",True,2,ISFJ / ENFP,Improve leadership ← Get into tech,0,0,0.0,0.0,20,20,30,6,0,0.0,0.0
+Jordan Patel,jordan.patel@rutgers.edu,Jordan Smith,jordan.smith@rutgers.edu,72.0,Volunteering,False,1,INFJ / ENFP,Publish research ← Get into tech,30,0,0.0,0.0,0,20,10,12,0,0.0,0.0
+Morgan Chen,morgan.chen@rutgers.edu,Sam Garcia,sam.garcia@mit.edu,68.0,Coding,False,2,INTP / ISFP,Prepare for grad school ← Get into tech,0,0,15.0,15.0,0,20,10,8,0,0.0,0.0
+Morgan Chen,morgan.chen@rutgers.edu,Jordan Smith,jordan.smith@rutgers.edu,59.0,,False,1,INFJ / ISFP,Publish research ← Get into tech,30,0,0.0,0.0,0,20,0,9,0,0.0,0.0
+Morgan Chen,morgan.chen@rutgers.edu,Sam Patel,sam.patel@rutgers.edu,57.0,,False,2,ISTJ / ISFP,Network more ← Get into tech,30,0,0.0,0.0,0,20,0,7,0,0.0,0.0
+Morgan Khan,morgan.khan@rutgers.edu,Sam Williams,sam.williams@rutgers.edu,81.0,Reading,False,0,INTP / ISFJ,Get into tech ← Network more,30,0,15.0,0.0,0,20,10,6,0,0.0,0.0
+Morgan Khan,morgan.khan@rutgers.edu,Sam Williams,sam.williams@stanford.edu,80.0,,True,0,INTJ / ISFJ,Improve leadership ← Network more,30,0,0.0,0.0,20,20,0,6,4,0.0,0.0
+Morgan Khan,morgan.khan@rutgers.edu,Morgan Chen,morgan.chen@stanford.edu,75.0,,True,3,ESTP / ISFJ,Improve leadership ← Network more,30,0,0.0,15.0,20,0,0,6,4,0.0,0.0
+Morgan Patel,morgan.patel@rutgers.edu,Morgan Williams,morgan.williams@stanford.edu,105.0,Volunteering,True,1,ISFJ / INTP,Improve leadership ← Network more,30,0,0.0,15.0,20,20,10,6,4,0.0,0.0
+Morgan Patel,morgan.patel@rutgers.edu,Sam Garcia,sam.garcia@mit.edu,83.0,Gaming,False,1,INTP / INTP,Prepare for grad school ← Network more,30,0,15.0,0.0,0,20,10,8,0,0.0,0.0
+Morgan Patel,morgan.patel@rutgers.edu,Sam Garcia,sam.garcia@mit.edu,62.0,,False,1,ENFP / INTP,Improve leadership ← Network more,30,0,0.0,0.0,0,20,0,8,4,0.0,0.0
+Morgan Smith,morgan.smith@rutgers.edu,Sam Williams,sam.williams@stanford.edu,75.0,Gaming,True,1,INTJ / ENFJ,Improve leadership ← Start a business,0,0,0.0,15.0,20,20,10,10,0,0.0,0.0
+Morgan Smith,morgan.smith@rutgers.edu,Sam Patel,sam.patel@rutgers.edu,73.0,Gaming,True,1,ISTJ / ENFJ,Network more ← Start a business,0,0,15.0,0.0,20,20,10,8,0,0.0,0.0
+Morgan Smith,morgan.smith@rutgers.edu,Sam Garcia,sam.garcia@mit.edu,67.0,Gaming,False,1,INTP / ENFJ,Prepare for grad school ← Start a business,30,0,0.0,0.0,0,20,10,7,0,0.0,0.0
+Morgan Williams,morgan.williams@stanford.edu,Morgan Williams,morgan.williams@stanford.edu,86.0,Volunteering,False,0,ISFJ / INFP,Improve leadership ← Network more,30,0,15.0,0.0,0,20,10,7,4,0.0,0.0
+Morgan Williams,morgan.williams@stanford.edu,Sam Garcia,sam.garcia@mit.edu,80.0,,False,2,ENFP / INFP,Improve leadership ← Network more,30,0,15.0,0.0,0,20,0,11,4,0.0,0.0
+Morgan Williams,morgan.williams@stanford.edu,Sam Garcia,sam.garcia@mit.edu,59.0,,False,0,INTP / INFP,Prepare for grad school ← Network more,30,0,0.0,0.0,0,20,0,9,0,0.0,0.0
+Sam Chen,sam.chen@rutgers.edu,Sam Williams,sam.williams@stanford.edu,111.0,Gaming,False,2,INTJ / ISTP,Improve leadership ← Prepare for grad school,30,30,15.0,0.0,0,20,10,6,0,0.0,0.0
+Sam Chen,sam.chen@rutgers.edu,Jamie Khan,jamie.khan@stanford.edu,84.0,Music,False,1,ISFP / ISTP,Network more ← Prepare for grad school,30,0,0.0,15.0,0,20,10,9,0,0.0,0.0
+Sam Chen,sam.chen@rutgers.edu,Sam Williams,sam.williams@rutgers.edu,77.0,"Gaming, Music",False,2,INTP / ISTP,Get into tech ← Prepare for grad school,30,0,0.0,0.0,0,20,20,7,0,0.0,0.0
+Sam Khan,sam.khan@rutgers.edu,Sam Williams,sam.williams@rutgers.edu,88.0,Gaming,True,1,INTP / INTP,Get into tech ← Publish research,30,0,0.0,0.0,20,20,10,8,0,0.0,0.0
+Sam Khan,sam.khan@rutgers.edu,Sam Williams,sam.williams@stanford.edu,84.0,Gaming,False,1,INTJ / INTP,Improve leadership ← Publish research,30,0,0.0,15.0,0,20,10,9,0,0.0,0.0
+Sam Khan,sam.khan@rutgers.edu,Morgan Chen,morgan.chen@stanford.edu,81.0,Basketball,False,2,ESTP / INTP,Improve leadership ← Publish research,30,0,15.0,0.0,0,20,10,6,0,0.0,0.0
+Sam Williams,sam.williams@stanford.edu,Sam Patel,sam.patel@rutgers.edu,98.0,Gaming,False,2,ISTJ / ENTJ,Network more ← Get into tech,30,30,0.0,0.0,0,20,10,8,0,0.0,0.0
+Sam Williams,sam.williams@stanford.edu,Morgan Williams,morgan.williams@stanford.edu,72.0,,False,2,ISFJ / ENTJ,Improve leadership ← Get into tech,0,30,0.0,15.0,0,20,0,7,0,0.0,0.0
+Sam Williams,sam.williams@stanford.edu,Jordan Smith,jordan.smith@rutgers.edu,62.0,,False,1,INFJ / ENTJ,Publish research ← Get into tech,30,0,0.0,0.0,0,20,0,12,0,0.0,0.0
+Taylor Brown,taylor.brown@rutgers.edu,Morgan Williams,morgan.williams@stanford.edu,102.0,"Coding, Volunteering",True,3,ISFJ / ESFJ,Improve leadership ← Improve leadership,30,0,15.0,0.0,20,0,20,9,8,0.0,0.0
+Taylor Brown,taylor.brown@mit.edu,Sam Garcia,sam.garcia@mit.edu,97.0,"Basketball, Traveling",True,0,ENFP / ESFJ,Improve leadership ← Prepare for grad school,0,30,0.0,0.0,20,20,20,7,0,0.0,0.0
+Taylor Brown,taylor.brown@rutgers.edu,Sam Garcia,sam.garcia@mit.edu,95.0,,False,1,ENFP / ESFJ,Improve leadership ← Improve leadership,30,0,15.0,15.0,0,20,0,7,8,0.0,0.0
+Taylor Chen,taylor.chen@mit.edu,Jamie Khan,jamie.khan@stanford.edu,95.0,,True,1,ISFP / ENFJ,Network more ← Improve leadership,30,0,0.0,15.0,20,20,0,6,4,0.0,0.0
+Taylor Chen,taylor.chen@mit.edu,Morgan Chen,morgan.chen@stanford.edu,80.0,,False,1,ESTP / ENFJ,Improve leadership ← Improve leadership,30,0,15.0,0.0,0,20,0,7,8,0.0,0.0
+Taylor Chen,taylor.chen@mit.edu,Sam Williams,sam.williams@rutgers.edu,77.0,,True,2,INTP / ENFJ,Get into tech ← Improve leadership,30,0,0.0,0.0,20,20,0,7,0,0.0,0.0
+Taylor Smith,taylor.smith@rutgers.edu,Sam Patel,sam.patel@rutgers.edu,97.0,Gaming,True,0,ISTJ / ISTP,Network more ← Network more,30,0,0.0,0.0,20,20,10,9,8,0.0,0.0
+Taylor Smith,taylor.smith@rutgers.edu,Morgan Chen,morgan.chen@stanford.edu,89.0,,False,3,ESTP / ISFJ,Improve leadership ← Improve leadership,30,30,15.0,0.0,0,0,0,6,8,0.0,0.0
+Taylor Smith,taylor.smith@rutgers.edu,Jordan Smith,jordan.smith@rutgers.edu,88.0,Volunteering,True,1,INFJ / ISFJ,Publish research ← Improve leadership,0,30,0.0,0.0,20,20,10,8,0,0.0,0.0
