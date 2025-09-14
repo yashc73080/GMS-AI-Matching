@@ -1,4 +1,7 @@
+from typing import Optional
 import pandas as pd
+import gspread
+from google.oauth2.service_account import Credentials
 
 def normalize_responses(df: pd.DataFrame) -> pd.DataFrame:
     rename_map = {
@@ -20,3 +23,13 @@ def normalize_responses(df: pd.DataFrame) -> pd.DataFrame:
         df["School"] = df["High School"]
     
     return df
+
+# Google Sheets import helper
+def read_google_sheet(sheet_id: str, creds_json: str, worksheet_name: Optional[str] = None) -> pd.DataFrame:
+    scope = ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive']
+    creds = Credentials.from_service_account_file(creds_json, scopes=scope)
+    client = gspread.authorize(creds)
+    sh = client.open_by_key(sheet_id)
+    ws = sh.sheet1 if worksheet_name is None else sh.worksheet(worksheet_name)
+    data = ws.get_all_records()
+    return pd.DataFrame(data)

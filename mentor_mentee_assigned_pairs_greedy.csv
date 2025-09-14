@@ -1,8 +1,0 @@
-Mentee,Mentee Email,Mentor,Mentor Email,Score,Shared Hobbies (Exact),Same School,Year Gap,MBTI Mentor/Mentee,Goals (Mentor←Mentee),BRK::pref_gender,BRK::pref_eth,BRK::mentor_pref_gender,BRK::mentor_pref_eth,BRK::same_school,BRK::year_proximity,BRK::hobby_overlap_exact,BRK::mbti,BRK::goals_rule,BRK::goals_semantic,BRK::interests_semantic
-Jordan Garcia,jordan.garcia@mit.edu,Sam Garcia,sam.garcia@mit.edu,131.0,Traveling,True,1,INTP / ESTP,Prepare for grad school ← Start a business,30,30,15.0,0.0,20,20,10,6,0,0.0,0.0
-Sam Chen,sam.chen@rutgers.edu,Sam Williams,sam.williams@stanford.edu,111.0,Gaming,False,2,INTJ / ISTP,Improve leadership ← Prepare for grad school,30,30,15.0,0.0,0,20,10,6,0,0.0,0.0
-Morgan Patel,morgan.patel@rutgers.edu,Morgan Williams,morgan.williams@stanford.edu,105.0,Volunteering,True,1,ISFJ / INTP,Improve leadership ← Network more,30,0,0.0,15.0,20,20,10,6,4,0.0,0.0
-Jordan Lee,jordan.lee@stanford.edu,Morgan Chen,morgan.chen@stanford.edu,99.0,Basketball,False,3,ESTP / INFP,Improve leadership ← Improve leadership,30,30,15.0,0.0,0,0,10,6,8,0.0,0.0
-Sam Williams,sam.williams@stanford.edu,Sam Patel,sam.patel@rutgers.edu,98.0,Gaming,False,2,ISTJ / ENTJ,Network more ← Get into tech,30,30,0.0,0.0,0,20,10,8,0,0.0,0.0
-Taylor Chen,taylor.chen@mit.edu,Jamie Khan,jamie.khan@stanford.edu,95.0,,True,1,ISFP / ENFJ,Network more ← Improve leadership,30,0,0.0,15.0,20,20,0,6,4,0.0,0.0
-Taylor Brown,taylor.brown@mit.edu,Jordan Smith,jordan.smith@rutgers.edu,93.0,,False,1,INFJ / ESFJ,Publish research ← Prepare for grad school,30,0,15.0,15.0,0,20,0,9,4,0.0,0.0

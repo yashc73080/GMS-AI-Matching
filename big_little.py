@@ -1,44 +1,15 @@
-"""
-Updated mentor_mentee_matcher.py
-
-Features added and simplified per user request:
-- Reads responses from CSV or Google Sheets (optional, via gspread + service account)
-- Validates mentor .edu emails and tags non-.edu mentors for review
-- Splits data into mentors and mentees dataframes
-- Matching algorithm that considers:
-  - MBTI compatibility via the existing MBTI matrix
-  - Preferred gender and ethnicity (soft or hard preferences)
-  - Location match (state level) with configurable weight
-  - Class year proximity
-  - Exact hobby overlap
-  - Semantic similarity of Goals and Interests using sentence-transformers embeddings (optional)
-- Produces: full score CSV, top-K per mentee CSV, and assigned pairs CSV
-- Admin review flags for any validation issues
-
-Usage:
-  python mentor_mentee_matcher_updated.py --input responses.csv --outdir out --semantic embed
-
-Dependencies (optional):
-  pip install pandas numpy scikit-learn sentence-transformers gspread oauth2client
-
-"""
-
 from pathlib import Path
-import argparse
 import re
 import math
 from typing import Optional, Dict, Any, Tuple
 import pandas as pd
-import numpy as np
-from sentence_transformers import SentenceTransformer
-from sklearn.metrics.pairwise import cosine_similarity
-import gspread
-from google.oauth2.service_account import Credentials
 from time import time
 
-from sheet_helper import normalize_responses
+from sheet_helper import normalize_responses, read_google_sheet
+from semantic_scorer import SemanticScorer
+from matching_algos import greedy_assign, gale_shapley
 
-# MBTI matrix retained from original file. Keep as-is for compatibility.
+# MBTI matrix; keep as-is for compatibility.
 MBTI_MATRIX = {
     "INTJ": {"INTJ":8,"INTP":9,"ENTJ":10,"ENTP":11,"INFJ":9,"INFP":7,"ENFJ":10,"ENFP":15,
              "ISTJ":7,"ISFJ":6,"ESTJ":8,"ESFJ":7,"ISTP":6,"ISFP":5,"ESTP":7,"ESFP":6},
@@ -92,43 +63,6 @@ def mbti_score_full(a: str, b: str) -> int:
     b = (b or "").upper().strip()
     return MBTI_MATRIX.get(a, {}).get(b, 0)
 
-# Semantic scorer
-class SemanticScorer:
-    def __init__(self, mode: str = "off", model_name: str = "all-MiniLM-L6-v2"):
-        self.mode = mode
-        self.model_name = model_name
-        self._embedder = None
-        if self.mode == "embed":
-            try:
-                self._embedder = SentenceTransformer(self.model_name)
-                self.cosine_similarity = cosine_similarity
-            except Exception as e:
-                raise RuntimeError("Embed mode requires sentence-transformers and scikit-learn. "
-                                   "Install with: pip install sentence-transformers scikit-learn")
-
-    @staticmethod
-    def _norm(s: Optional[str]) -> str:
-        return "" if s is None else str(s).strip()
-
-    def _embed_cosine01(self, a: str, b: str) -> float:
-        a = self._norm(a); b = self._norm(b)
-        if not a or not b:
-            return 0.0
-        embs = self._embedder.encode([a, b], show_progress_bar=False, normalize_embeddings=True)
-        sim = float(self.cosine_similarity([embs[0]], [embs[1]])[0][0])  # [-1,1]
-        return max(0.0, min(1.0, (sim + 1.0) / 2.0))
-
-    def goals(self, mentee_goal: str, mentor_goal: str) -> float:
-        if self.mode != "embed":
-            return 0.0
-        return self._embed_cosine01(mentee_goal, mentor_goal)
-
-    def interests(self, mentee_interests: str, mentor_interests: str) -> float:
-        if self.mode != "embed":
-            return 0.0
-        return self._embed_cosine01(mentee_interests, mentor_interests)
-
-# Helpers
 def parse_list_cell(cell: Optional[str]):
     if pd.isna(cell) or cell is None:
         return set()
@@ -274,84 +208,6 @@ def build_match_table(df: pd.DataFrame, sem: SemanticScorer, weights: Dict[str, 
                 })
     scores_df = pd.DataFrame(rows).sort_values(['Mentee','Score'], ascending=[True, False]).reset_index(drop=True)
     return mentors, mentees, scores_df
-
-# Matching algorithms
-def greedy_assign(scores_df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Assigns mentors to mentees based on the highest scores in a greedy manner.
-    This function takes a DataFrame containing mentor-mentee pair scores and 
-    assigns each mentor to a mentee such that no mentor or mentee is assigned 
-    more than once. The assignment is performed by iterating through the 
-    scores in descending order and selecting the highest available pair.
-    """
-    assigned = []
-    used_mentors = set()
-    used_mentees = set()
-    for _, row in scores_df.sort_values('Score', ascending=False).iterrows():
-        if row['Mentor'] in used_mentors or row['Mentee'] in used_mentees:
-            continue
-        assigned.append(row)
-        used_mentors.add(row['Mentor'])
-        used_mentees.add(row['Mentee'])
-    if assigned:
-        return pd.DataFrame(assigned).reset_index(drop=True)
-    return pd.DataFrame(columns=scores_df.columns)
-
-# Gale-Shapley stable matching as alternate
-def gale_shapley(scores_df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Implements the Gale-Shapley algorithm to find stable matches between mentees and mentors
-    based on their preference scores. The algorithm ensures that the resulting matches are stable, 
-    meaning no mentee-mentor pair would prefer each other over their current matches.
-    """
-    
-    mentee_groups = scores_df.groupby('Mentee')
-    mentor_groups = scores_df.groupby('Mentor')
-
-    mentee_prefs = {m: list(g.sort_values('Score', ascending=False)['Mentor']) for m, g in mentee_groups}
-    mentor_prefs = {m: list(g.sort_values('Score', ascending=False)['Mentee']) for m, g in mentor_groups}
-    mentor_rank = {m: {mentee: r for r, mentee in enumerate(prefs)} for m, prefs in mentor_prefs.items()}
-
-    free_mentees = list(mentee_prefs.keys())
-    next_idx = {m: 0 for m in free_mentees}
-    match = {}
-
-    while free_mentees:
-        mtee = free_mentees.pop(0)
-        prefs = mentee_prefs.get(mtee, [])
-        if next_idx[mtee] >= len(prefs):
-            continue
-        mtor = prefs[next_idx[mtee]]
-        next_idx[mtee] += 1
-
-        if mtor not in match:
-            match[mtor] = mtee
-        else:
-            other = match[mtor]
-            if mentor_rank.get(mtor, {}).get(mtee, math.inf) < mentor_rank.get(mtor, {}).get(other, math.inf):
-                match[mtor] = mtee
-                free_mentees.append(other)
-            else:
-                free_mentees.append(mtee)
-
-    pairs = []
-    for mentor, mentee in match.items():
-        rows = scores_df[(scores_df['Mentor'] == mentor) & (scores_df['Mentee'] == mentee)]
-        if not rows.empty:
-            pairs.append(rows.sort_values('Score', ascending=False).iloc[0])
-    if pairs:
-        return pd.DataFrame(pairs).reset_index(drop=True)
-    return pd.DataFrame(columns=scores_df.columns)
-
-# Google Sheets import helper
-def read_google_sheet(sheet_id: str, creds_json: str, worksheet_name: Optional[str] = None) -> pd.DataFrame:
-    scope = ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive']
-    creds = Credentials.from_service_account_file(creds_json, scopes=scope)
-    client = gspread.authorize(creds)
-    sh = client.open_by_key(sheet_id)
-    ws = sh.sheet1 if worksheet_name is None else sh.worksheet(worksheet_name)
-    data = ws.get_all_records()
-    return pd.DataFrame(data)
 
 # Write analysis tables
 def write_analysis_tables(pairs_df: pd.DataFrame, df: pd.DataFrame, res_dir: Path):
