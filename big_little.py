@@ -1,13 +1,12 @@
 from pathlib import Path
 import re
-import math
-from typing import Optional, Dict, Any, Tuple
+from typing import Optional, Dict, Tuple
 import pandas as pd
 from time import time
 
 from sheet_helper import normalize_responses, read_google_sheet
 from semantic_scorer import SemanticScorer
-from matching_algos import greedy_assign, gale_shapley
+from matching_algos import greedy_assign, gale_shapley, greedy_assign_with_capacity, gale_shapley_with_capacity
 
 # MBTI matrix; keep as-is for compatibility.
 MBTI_MATRIX = {
@@ -221,8 +220,16 @@ def write_analysis_tables(pairs_df: pd.DataFrame, df: pd.DataFrame, res_dir: Pat
     assignments_path = results_dir / "mentor_mentee_assignments.csv"
     assignments.to_csv(assignments_path, index=False)
 
+    # Get requested mentees from responses
+    mentor_requested = {}
+    if "Num Mentees" in df.columns:
+        for _, row in df[df["Mentee/Mentor"].str.strip().str.lower() == "mentor"].iterrows():
+            mentor_requested[row["Name"]] = row.get("Num Mentees", "")
+
+    # Count allocated mentees from pairs
+    mentor_allocated = pairs_df["Mentor"].value_counts().to_dict()
+
     # 2. Detailed Table
-    # Fields used for matching (excluding Gender and Ethnicity)
     match_fields = [
         "state", "School", "Class Year", "MBTI", "Interest/Hobbies", "Goals", "Preferred Gender", "Preferred Ethnicity"
     ]
@@ -232,8 +239,11 @@ def write_analysis_tables(pairs_df: pd.DataFrame, df: pd.DataFrame, res_dir: Pat
         mentee = df[df["Name"] == row["Mentee"]].iloc[0]
         detailed = {
             "mentor name": row["Mentor"],
-            "mentee name": row["Mentee"]
+            "mentee name": row["Mentee"],
+            "Num Mentees Requested": mentor_requested.get(row["Mentor"], ""),
+            "Num Mentees Allocated": mentor_allocated.get(row["Mentor"], 0)
         }
+        
         # Add custom gender/ethnicity fields
         detailed["mentor Gender | mentee Preferred Gender"] = f"{mentor.get('Gender', '')} | {mentee.get('Preferred Gender', '')}"
         detailed["mentor Ethnicity | mentee Preferred Ethnicity"] = f"{mentor.get('Ethnicity', '')} | {mentee.get('Preferred Ethnicity', '')}"
@@ -308,9 +318,10 @@ def main():
     topk.to_csv(topk_path, index=False)
 
     if MATCH_ALGO == 'greedy':
-        pairs = greedy_assign(scores_df)
+        pairs = greedy_assign_with_capacity(scores_df, mentors)
     else:
-        pairs = gale_shapley(scores_df)
+        pairs = gale_shapley_with_capacity(scores_df, mentors)
+
     pairs_path = out_dir / f'mentor_mentee_assigned_pairs_{MATCH_ALGO}.csv'
     pairs.to_csv(pairs_path, index=False)
 
