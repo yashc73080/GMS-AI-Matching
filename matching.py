@@ -36,6 +36,8 @@ import gspread
 from google.oauth2.service_account import Credentials
 from time import time
 
+from sheet_helper import normalize_responses
+
 # MBTI matrix retained from original file. Keep as-is for compatibility.
 MBTI_MATRIX = {
     "INTJ": {"INTJ":8,"INTP":9,"ENTJ":10,"ENTP":11,"INFJ":9,"INFP":7,"ENFJ":10,"ENFP":15,
@@ -72,27 +74,25 @@ MBTI_MATRIX = {
              "ISTJ":6,"ISFJ":7,"ESTJ":7,"ESFJ":8,"ISTP":9,"ISFP":10,"ESTP":9,"ESFP":8}
 }
 
+# Default weights.
+DEFAULT_WEIGHTS = {
+    "gender_pref": 25,
+    "eth_pref": 25,
+    "year_proximity": 20,
+    "mbti": 15,
+    "goals_rule": 5,
+    "goals_semantic": 25,
+    "interests_semantic": 20,
+    "location_state": 15,
+}
+
 
 def mbti_score_full(a: str, b: str) -> int:
     a = (a or "").upper().strip()
     b = (b or "").upper().strip()
     return MBTI_MATRIX.get(a, {}).get(b, 0)
 
-# Default weights. Includes location weight for state matching.
-DEFAULT_WEIGHTS = {
-    "gender_pref": 30,
-    "eth_pref": 30,
-    "same_school": 20,
-    "year_proximity": 20,
-    "hobby_overlap": 10,
-    "mbti": 15,
-    "goals_rule": 8,
-    "goals_semantic": 20,
-    "interests_semantic": 10,
-    "location_state": 15,
-}
-
-# Semantic scorer simplified and optional
+# Semantic scorer
 class SemanticScorer:
     def __init__(self, mode: str = "off", model_name: str = "all-MiniLM-L6-v2"):
         self.mode = mode
@@ -202,12 +202,6 @@ def compute_score(mentor, mentee, sem: SemanticScorer, weights: Dict[str, float]
     score += loc_pts
     brk['location_state'] = loc_pts
 
-    # Same school
-    same_school = str(mentor.get("School","")).strip().lower() == str(mentee.get("School","")).strip().lower()
-    sschool = weights.get("same_school", 0) if same_school else 0
-    score += sschool
-    brk['same_school'] = sschool
-
     # Year proximity
     yp = 0
     try:
@@ -219,13 +213,6 @@ def compute_score(mentor, mentee, sem: SemanticScorer, weights: Dict[str, float]
         yp = 0
     score += yp
     brk['year_proximity'] = yp
-
-    # Exact hobby overlap
-    h_mentor = parse_list_cell(mentor.get("Interest/Hobbies"))
-    h_mentee = parse_list_cell(mentee.get("Interest/Hobbies"))
-    hobby_pts = len(h_mentor & h_mentee) * weights.get("hobby_overlap", 0)
-    score += hobby_pts
-    brk['hobby_overlap_exact'] = hobby_pts
 
     # MBTI
     mbti_pts = mbti_score_full(mentor.get("MBTI",""), mentee.get("MBTI",""))
@@ -290,6 +277,13 @@ def build_match_table(df: pd.DataFrame, sem: SemanticScorer, weights: Dict[str, 
 
 # Matching algorithms
 def greedy_assign(scores_df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Assigns mentors to mentees based on the highest scores in a greedy manner.
+    This function takes a DataFrame containing mentor-mentee pair scores and 
+    assigns each mentor to a mentee such that no mentor or mentee is assigned 
+    more than once. The assignment is performed by iterating through the 
+    scores in descending order and selecting the highest available pair.
+    """
     assigned = []
     used_mentors = set()
     used_mentees = set()
@@ -305,6 +299,12 @@ def greedy_assign(scores_df: pd.DataFrame) -> pd.DataFrame:
 
 # Gale-Shapley stable matching as alternate
 def gale_shapley(scores_df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Implements the Gale-Shapley algorithm to find stable matches between mentees and mentors
+    based on their preference scores. The algorithm ensures that the resulting matches are stable, 
+    meaning no mentee-mentor pair would prefer each other over their current matches.
+    """
+    
     mentee_groups = scores_df.groupby('Mentee')
     mentor_groups = scores_df.groupby('Mentor')
 
@@ -343,40 +343,7 @@ def gale_shapley(scores_df: pd.DataFrame) -> pd.DataFrame:
         return pd.DataFrame(pairs).reset_index(drop=True)
     return pd.DataFrame(columns=scores_df.columns)
 
-# Simple sample data generator kept for testing
-def generate_sample_data(n: int = 30) -> pd.DataFrame:
-    import random
-    genders = ["Male","Female","Nonbinary","Other"]
-    ethnicities = ["Asian","Black","Hispanic","White","Mixed","Other"]
-    mentor_status = ["Mentor","Mentee"]
-    schools = ["Rutgers University","MIT","Stanford","Harvard","Princeton","Columbia"]
-    mbti_types = list(MBTI_MATRIX.keys())
-    hobbies = ["Coding","Music","Basketball","Reading","Gaming","Traveling","Volunteering"]
-    goals_list = ["Get into tech","Improve leadership","Network more","Publish research","Prepare for grad school","Start a business"]
-    firsts = ["Alex","Sam","Taylor","Jordan","Morgan","Chris","Jamie","Riley"]
-    lasts  = ["Patel","Smith","Chen","Garcia","Khan","Williams","Brown","Lee"]
-
-    rows = []
-    for _ in range(n):
-        first = random.choice(firsts)
-        last = random.choice(lasts)
-        name = f"{first} {last}"
-        class_year = random.choice([2025,2026,2027,2028])
-        email = f"{first.lower()}.{last.lower()}@{random.choice(['rutgers.edu','mit.edu','gmail.com'])}"
-        gender = random.choice(genders)
-        ethnicity = random.choice(ethnicities)
-        role = random.choices(mentor_status, weights=[0.4,0.6])[0]
-        school = random.choice(schools)
-        mbti = random.choice(mbti_types)
-        interests = ", ".join(random.sample(hobbies, k=random.randint(1,3)))
-        goals = random.choice(goals_list)
-        pref_gender = random.choice(genders+['No preference'])
-        pref_eth = random.choice(ethnicities+['No preference'])
-        state = random.choice(['NJ','NY','PA'])
-        rows.append([name, class_year, email, gender, ethnicity, role, state, school, mbti, interests, goals, pref_gender, pref_eth])
-    return pd.DataFrame(rows, columns=["Name","Class Year","Email","Gender","Ethnicity","Mentee/Mentor","state","School","MBTI","Interest/Hobbies","Goals","Preferred Gender","Preferred Ethnicity"])
-
-# Optional Google Sheets import helper
+# Google Sheets import helper
 def read_google_sheet(sheet_id: str, creds_json: str, worksheet_name: Optional[str] = None) -> pd.DataFrame:
     scope = ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive']
     creds = Credentials.from_service_account_file(creds_json, scopes=scope)
@@ -387,9 +354,9 @@ def read_google_sheet(sheet_id: str, creds_json: str, worksheet_name: Optional[s
     return pd.DataFrame(data)
 
 # Write analysis tables
-def write_analysis_tables(pairs_df: pd.DataFrame, df: pd.DataFrame, out_dir: Path):
+def write_analysis_tables(pairs_df: pd.DataFrame, df: pd.DataFrame, res_dir: Path):
     # Ensure output directory exists
-    results_dir = out_dir / "results"
+    results_dir = res_dir
     results_dir.mkdir(parents=True, exist_ok=True)
 
     # 1. Assignments Table
@@ -422,8 +389,8 @@ def write_analysis_tables(pairs_df: pd.DataFrame, df: pd.DataFrame, out_dir: Pat
         # Add breakdown fields
         for brk in [
             "BRK::pref_gender", "BRK::pref_eth", "BRK::mentor_pref_gender", "BRK::mentor_pref_eth",
-            "BRK::location_state", "BRK::same_school", "BRK::year_proximity", "BRK::hobby_overlap_exact",
-            "BRK::mbti", "BRK::goals_rule", "BRK::goals_semantic", "BRK::interests_semantic"
+            "BRK::location_state", "BRK::year_proximity","BRK::mbti", "BRK::goals_rule", 
+            "BRK::goals_semantic", "BRK::interests_semantic"
         ]:
             detailed[brk] = row.get(brk, "")
         detailed_rows.append(detailed)
@@ -437,14 +404,14 @@ def main():
 
     # ---- BEGIN CONFIGURATION ----
     # Set these variables directly to configure the script
-    INPUT_CSV = 'sample_mentors_mentees.csv'  # e.g., 'responses.csv' or None to use sample data
+    INPUT_CSV = 'sample_mentors_mentees.csv'  # e.g., 'responses.csv'
     SHEET_ID = None   # e.g., 'your_google_sheet_id' or None to skip Google Sheets
     GCRED_PATH = None # e.g., 'service_account.json' if using Google Sheets
     OUTDIR = 'out'
     SEMANTIC = 'embed'  # 'off' or 'embed'
     EMBED_MODEL = 'all-MiniLM-L6-v2'
     PREFS = 'soft'    # 'soft' or 'hard';  how strictly to enforce gender and ethnicity preferences
-    MATCH_ALGO = 'greedy'  # 'greedy' or 'stable'
+    MATCH_ALGO = 'stable'  # 'greedy' or 'stable'
     TOPK = 3
     # ---- END CONFIGURATION ----
 
@@ -458,13 +425,14 @@ def main():
         if not GCRED_PATH:
             raise SystemExit('When using SHEET_ID you must provide GCRED_PATH to service account JSON')
         df = read_google_sheet(SHEET_ID, GCRED_PATH)
+        df = normalize_responses(df)
         print(f"[INFO] Loaded {len(df)} rows from Google Sheet {SHEET_ID}")
     elif INPUT_CSV:
         df = pd.read_csv(INPUT_CSV)
+        df = normalize_responses(df)
         print(f"[INFO] Loaded CSV {INPUT_CSV} ({len(df)} rows)")
     else:
-        df = generate_sample_data(40)
-        print(f"[INFO] Using generated sample dataset ({len(df)} rows)")
+        raise SystemExit('You must provide either INPUT_CSV or SHEET_ID to load data')
 
     # Ensure required columns
     expected = ["Name","Email","Mentee/Mentor","Gender","Ethnicity","state","School","Class Year","MBTI","Interest/Hobbies","Goals","Preferred Gender","Preferred Ethnicity"]
