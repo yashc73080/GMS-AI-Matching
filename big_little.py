@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 import re
 from typing import Optional, Dict, Tuple
@@ -7,6 +8,9 @@ from time import time
 from sheet_helper import normalize_responses, read_google_sheet
 from semantic_scorer import SemanticScorer
 from matching_algos import greedy_assign, gale_shapley, greedy_assign_with_capacity, gale_shapley_with_capacity
+
+from dotenv import load_dotenv
+load_dotenv()
 
 # MBTI matrix; keep as-is for compatibility.
 MBTI_MATRIX = {
@@ -130,7 +134,7 @@ def compute_score(mentor, mentee, sem: SemanticScorer, weights: Dict[str, float]
     brk['mentor_pref_eth'] = mepref
 
     # Location match: state
-    state_match = str(mentor.get("state","")).strip().lower() == str(mentee.get("state","")).strip().lower()
+    state_match = str(mentor.get("State","")).strip().lower() == str(mentee.get("State","")).strip().lower()
     loc_pts = weights.get("location_state", 0) if state_match else 0
     score += loc_pts
     brk['location_state'] = loc_pts
@@ -163,7 +167,7 @@ def compute_score(mentor, mentee, sem: SemanticScorer, weights: Dict[str, float]
     score += gs_pts
     brk['goals_semantic'] = round(gs_pts, 4)
 
-    isem01 = sem.interests(mentee.get("Interest/Hobbies"), mentor.get("Interest/Hobbies"))
+    isem01 = sem.interests(mentee.get("Interests/Hobbies"), mentor.get("Interests/Hobbies"))
     isem_pts = isem01 * weights.get("interests_semantic", 0)
     score += isem_pts
     brk['interests_semantic'] = round(isem_pts, 4)
@@ -175,8 +179,8 @@ def build_match_table(df: pd.DataFrame, sem: SemanticScorer, weights: Dict[str, 
     # Basic validation and cleaning
     df = df.copy()
     # Normalize column names to expected ones if users exported from Google Forms
-    # Expected fields provided by user: Class Year, Email, Gender, Ethnicity, state, Mentee/Mentor, Availability,
-    # School, MBTI, Interest/Hobbies, Goals, Preferred Gender, Preferred Ethnicity, Name
+    # Expected fields provided by user: Class Year, Email, Gender, Ethnicity, State, Mentee/Mentor, Availability,
+    # School, MBTI, Interests/Hobbies, Goals, Preferred Gender, Preferred Ethnicity, Name
 
     # Tag mentors without .edu for admin review
     df['mentor_email_is_edu'] = df['Email'].apply(is_edu_email)
@@ -198,7 +202,7 @@ def build_match_table(df: pd.DataFrame, sem: SemanticScorer, weights: Dict[str, 
                     'Score': s,
                     'Mentor Email Is EDU': mr.get('mentor_email_is_edu', False),
                     'Validation Notes Mentor': mr.get('validation_notes',''),
-                    'Shared Hobbies (Exact)': ', '.join(sorted(h_mentor & h_mentee for h_mentor, h_mentee in [(parse_list_cell(mr.get('Interest/Hobbies')), parse_list_cell(me.get('Interest/Hobbies')))] ) ) if False else ', '.join(sorted(parse_list_cell(mr.get('Interest/Hobbies')) & parse_list_cell(me.get('Interest/Hobbies')))),
+                    'Shared Hobbies (Exact)': ', '.join(sorted(h_mentor & h_mentee for h_mentor, h_mentee in [(parse_list_cell(mr.get('Interests/Hobbies')), parse_list_cell(me.get('Interests/Hobbies')))] ) ) if False else ', '.join(sorted(parse_list_cell(mr.get('Interests/Hobbies')) & parse_list_cell(me.get('Interests/Hobbies')))),
                     'Same School': str(mr.get('School','')).strip().lower() == str(me.get('School','')).strip().lower(),
                     'Year Gap': (abs(int(mr.get('Class Year')) - int(me.get('Class Year'))) if str(mr.get('Class Year')).isdigit() and str(me.get('Class Year')).isdigit() else None),
                     'MBTI Mentee/Mentor': f"{mr.get('MBTI','')} / {me.get('MBTI','')}",
@@ -231,7 +235,7 @@ def write_analysis_tables(pairs_df: pd.DataFrame, df: pd.DataFrame, res_dir: Pat
 
     # 2. Detailed Table
     match_fields = [
-        "state", "School", "Class Year", "MBTI", "Interest/Hobbies", "Goals", "Preferred Gender", "Preferred Ethnicity"
+        "State", "School", "Class Year", "MBTI", "Interests/Hobbies", "Goals", "Preferred Gender", "Preferred Ethnicity"
     ]
     detailed_rows = []
     for _, row in pairs_df.iterrows():
@@ -270,13 +274,13 @@ def main():
 
     # ---- BEGIN CONFIGURATION ----
     # Set these variables directly to configure the script
-    INPUT_CSV = 'sample_mentors_mentees.csv'  # e.g., 'responses.csv'
-    SHEET_ID = None   # e.g., 'your_google_sheet_id' or None to skip Google Sheets
-    GCRED_PATH = None # e.g., 'service_account.json' if using Google Sheets
+    INPUT_CSV = None # 'sample_mentors_mentees.csv'  # None to use Google Sheets
+    SHEET_ID = os.getenv("SHEET_ID") # None to skip Google Sheets
+    GCRED_PATH = os.getenv("GCRED_PATH") # None to skip Google Sheets
     OUTDIR = 'out'
     SEMANTIC = 'embed'  # 'off' or 'embed'
     EMBED_MODEL = 'all-MiniLM-L6-v2'
-    PREFS = 'soft'    # 'soft' or 'hard';  how strictly to enforce gender and ethnicity preferences
+    PREFS = 'soft'    # 'soft' or 'hard'; how strictly to enforce gender and ethnicity preferences
     MATCH_ALGO = 'stable'  # 'greedy' or 'stable'
     TOPK = 3
     # ---- END CONFIGURATION ----
@@ -293,6 +297,7 @@ def main():
         df = read_google_sheet(SHEET_ID, GCRED_PATH)
         df = normalize_responses(df)
         print(f"[INFO] Loaded {len(df)} rows from Google Sheet {SHEET_ID}")
+        df.to_csv(out_dir/'google_sheet_responses.csv', index=False)
     elif INPUT_CSV:
         df = pd.read_csv(INPUT_CSV)
         df = normalize_responses(df)
@@ -301,7 +306,7 @@ def main():
         raise SystemExit('You must provide either INPUT_CSV or SHEET_ID to load data')
 
     # Ensure required columns
-    expected = ["Name","Email","Mentee/Mentor","Gender","Ethnicity","state","School","Class Year","MBTI","Interest/Hobbies","Goals","Preferred Gender","Preferred Ethnicity"]
+    expected = ["Name","Email","Mentee/Mentor","Gender","Ethnicity","State","School","Class Year","MBTI","Interests/Hobbies","Goals","Preferred Gender","Preferred Ethnicity"]
     missing = [c for c in expected if c not in df.columns]
     if missing:
         print(f"[WARN] Missing columns. Expected: {expected}. Missing: {missing}")

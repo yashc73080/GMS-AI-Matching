@@ -1,0 +1,21 @@
+Timestamp,Name,Email,Gender,Ethnicity,State,Mentee/Mentor,Availability,MBTI,Interests/Hobbies,Goals,Preferred Gender,Preferred Ethnicity,Class Year,Num Mentees,School
+,Alex Johnson,alex.johnson@rutgers.edu,Male,Asian,NJ,Mentor,Weekdays mornings,ENTJ,"Developing VR apps, basketball",I want to gain experience in AI research and guide students.,No preference,No preference,2027,2,Rutgers University
+,Taylor Smith,taylor.smith@mit.edu,Female,Hispanic,NJ,Mentor,Weekends,INFJ,"Cooking, writing fiction",I want to mentor students interested in creative careers.,Female,Hispanic,2025,1,MIT
+,Morgan Lee,morgan.lee@princeton.edu,Nonbinary,White,NJ,Mentor,Flexible schedule,INTJ,"Robotics, coding, volunteering",I want to help undergrads find internships in engineering.,No preference,White,2028,3,Princeton
+,Casey Brown,casey.brown@harvard.edu,Female,Mixed,NJ,Mentor,Weekdays evenings,ENFP,"Hiking, mentoring peers",My goal is to guide students applying for grad school.,Male,Mixed,2026,2,Harvard
+,Riley Patel,riley.patel@stanford.edu,Male,Black,NJ,Mentor,Weekends,INTP,"Stock trading, podcasts",I want to share my experience in fintech and startups.,No preference,Black,2027,1,Stanford
+,Jordan Chen,jordan.chen@columbia.edu,Female,Asian,NJ,Mentor,Only virtual meetings,ISFJ,"Digital art, movies",I want to mentor students who want to go into design & media.,Female,Asian,2029,3,Columbia
+,Avery Davis,avery.davis@rutgers.edu,Other,White,NJ,Mentor,Weekdays mornings,ESTP,"Soccer, cooking",I want to encourage students balancing academics with athletics.,Other,White,2025,2,Rutgers University
+,Jamie Garcia,jamie.garcia@princeton.edu,Male,Hispanic,NJ,Mentor,Flexible schedule,ENFJ,"Debate, volunteering",I want to mentor pre-law students.,Female,Hispanic,2026,2,Princeton
+,Sam Williams,sam.williams@mit.edu,Female,Asian,NJ,Mentor,Weekdays evenings,ISFP,"Yoga, meditation",I want to help students improve their time management.,Male,Asian,2025,1,MIT
+,Jordan Smith,jordan.smith@columbia.edu,Nonbinary,Mixed,NJ,Mentor,Weekends,INFP,"Esports, coding competitions",I want to support mentees aiming for competitive programming careers.,No preference,No preference,2027,3,Columbia
+,Alex Chen,alex.chen@student.hs.edu,Male,White,NJ,Mentee,Weekdays evenings,ENTP,"Gaming, robotics",I want to join a robotics competition team.,Female,Asian,,,East Brunswick HS
+,Taylor Khan,taylor.khan@student.hs.edu,Female,Black,NJ,Mentee,Weekends,INFJ,"Reading, volunteering",I want to improve my writing skills for college applications.,Male,No preference,,,Newark Tech HS
+,Casey Johnson,casey.johnson@student.hs.edu,Nonbinary,Asian,NJ,Mentee,Flexible schedule,INTJ,"Cooking, photography",I want to learn from a mentor in AI research.,No preference,Asian,,,Princeton HS
+,Morgan Davis,morgan.davis@student.hs.edu,Male,Mixed,NJ,Mentee,Weekdays mornings,ESTJ,"Basketball, coding",I want to get advice on applying to college for engineering.,Female,White,,,Franklin HS
+,Riley Lee,riley.lee@student.hs.edu,Female,Hispanic,NJ,Mentee,Weekdays evenings,ENFP,"Painting, hiking",I want to explore how to combine art with technology.,No preference,Hispanic,,,Edison HS
+,Avery Brown,avery.brown@student.hs.edu,Other,Asian,NJ,Mentee,Weekends,INTP,"Math puzzles, science clubs",I want to prepare for math Olympiad competitions.,Other,Asian,,,Ridge HS
+,Jamie Patel,jamie.patel@student.hs.edu,Male,Mixed,NJ,Mentee,Flexible schedule,ENTJ,"Soccer, coding side projects",I want to learn how to get internships during college.,Female,No preference,,,North Brunswick HS
+,Chris Johnson,chris.johnson@student.hs.edu,Female,White,NJ,Mentee,Only virtual meetings,ISFP,"Reading sci-fi, podcasts",I want to become a better public speaker.,Male,Mixed,,,South Brunswick HS
+,Jordan Brown,jordan.brown@student.hs.edu,Other,Black,NJ,Mentee,Weekdays mornings,INFP,"Drama club, singing",I want to prepare for college theater programs.,No preference,Black,,,Plainfield HS
+,Sam Smith,sam.smith@student.hs.edu,Nonbinary,Asian,NJ,Mentee,Weekdays evenings,ESTP,"Robotics, hackathons",I want to learn more about software engineering careers.,Other,Asian,,,Woodbridge HS

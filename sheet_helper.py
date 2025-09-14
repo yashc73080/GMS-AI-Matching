@@ -7,21 +7,27 @@ def normalize_responses(df: pd.DataFrame) -> pd.DataFrame:
     rename_map = {
         "Full Name": "Name",
         "Email (School or University Email)": "Email",
-        "Do you want to be a Mentor or Mentee?": "Mentor/Mentee",
+        "Do you want to be a Mentor or Mentee?": "Mentee/Mentor",
         "How many mentees do you want?": "Num Mentees",
-        "University": "School",
-        "High School": "School"
     }
     df = df.rename(columns=rename_map)
-    
-    # If both University and High School exist, merge into one School column
+
+    # Treat empty strings as NaN for merging
+    for col in ["University", "High School"]:
+        if col in df.columns:
+            df[col] = df[col].replace("", pd.NA)
+
+    # Merge into one School column, preferring University, then High School
     if "University" in df.columns and "High School" in df.columns:
-        df["School"] = df["University"].fillna(df["High School"])
+        df["School"] = df["University"].combine_first(df["High School"])
+        df = df.drop(columns=["University", "High School"], errors="ignore")
     elif "University" in df.columns:
         df["School"] = df["University"]
+        df = df.drop(columns=["University"], errors="ignore")
     elif "High School" in df.columns:
         df["School"] = df["High School"]
-    
+        df = df.drop(columns=["High School"], errors="ignore")
+
     return df
 
 # Google Sheets import helper
