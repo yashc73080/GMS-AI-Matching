@@ -32,7 +32,12 @@ This project matches **university mentors** with **high school mentees** using m
 git clone https://github.com/yashc73080/GMS-AI-Matching.git
 ```
 
-2. Install dependencies:
+2. Navigate to the project directory:
+```bash
+cd GMS-AI-Matching
+```
+
+3. Install dependencies:
 ```bash
 pip install -r requirements.txt
 ```
