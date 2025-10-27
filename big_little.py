@@ -50,14 +50,13 @@ MBTI_MATRIX = {
 
 # Default weights.
 DEFAULT_WEIGHTS = {
-    "gender_pref": 25,
-    "eth_pref": 25,
-    "year_proximity": 20,
-    "mbti": 15,
-    "goals_rule": 5,
-    "goals_semantic": 25,
-    "interests_semantic": 20,
-    "location_state": 15,
+    "gender_pref": 20,
+    "eth_pref": 20,
+    "lgbtq_pref": 20,
+    "availability_overlap": 20,
+    "mbti": 20,
+    "goals_semantic": 30,
+    "interests_semantic": 25,
 }
 
 
@@ -74,11 +73,56 @@ def parse_list_cell(cell: Optional[str]):
 
 def preference_satisfied(preferred, actual):
     if preferred is None:
-        return True
+        return False
     p = str(preferred).strip().lower()
     if p in ("", "no preference", "na", "n/a", "none"):
         return True
     return p == str(actual).strip().lower()
+
+def check_preference_match(preference_answer: Optional[str], mentor_value, mentee_value) -> bool:
+    """
+    Check if a preference is satisfied based on the new schema format.
+    preference_answer: "Yes", "No", or "No Preference"
+    Returns True if the preference is satisfied or if it's "No Preference"
+    """
+    if preference_answer is None:
+        return True
+    pref = str(preference_answer).strip().lower()
+    if pref in ("no", "no preference", "na", "n/a", "none", ""):
+        return True
+    if pref == "yes":
+        # For "Yes", check if values match
+        mentor_val = str(mentor_value).strip().lower() if mentor_value else ""
+        mentee_val = str(mentee_value).strip().lower() if mentee_value else ""
+        return mentor_val == mentee_val and mentor_val != ""
+    return True
+
+def calculate_availability_overlap(mentor_avail: Dict, mentee_avail: Dict) -> float:
+    """
+    Calculate the overlap in availability between mentor and mentee.
+    Returns a score between 0 and 1 based on matching time slots.
+    """
+    days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+    total_slots = 0
+    matching_slots = 0
+    
+    for day in days:
+        mentor_day_col = f"Availability [{day}]"
+        mentee_day_col = f"Availability [{day}]"
+        
+        mentor_times = parse_list_cell(mentor_avail.get(mentor_day_col))
+        mentee_times = parse_list_cell(mentee_avail.get(mentee_day_col))
+        
+        if mentor_times or mentee_times:
+            total_slots += 1
+            if mentor_times and mentee_times:
+                overlap = mentor_times.intersection(mentee_times)
+                if overlap:
+                    matching_slots += len(overlap) / max(len(mentor_times), len(mentee_times))
+    
+    if total_slots == 0:
+        return 0.0
+    return matching_slots / total_slots
 
 def goals_alignment_rules(mentee_goal, mentor_goal):
     mg = ("" if mentee_goal is None else str(mentee_goal)).strip().lower()
@@ -110,28 +154,88 @@ def compute_score(mentor, mentee, sem: SemanticScorer, weights: Dict[str, float]
     if str(mentor.get("Mentee/Mentor")).strip().lower() != "mentor" or str(mentee.get("Mentee/Mentor")).strip().lower() != "mentee":
         return -1.0, {}
 
-    if prefs_mode == "hard":
-        if not preference_satisfied(mentee.get("Preferred Gender"), mentor.get("Gender")):
-            return -1.0, {}
-        if not preference_satisfied(mentee.get("Preferred Ethnicity"), mentor.get("Ethnicity")):
-            return -1.0, {}
-
     score = 0.0
     brk = {}
 
-    # Preferred gender/ethnicity from mentee side
-    gpref = weights.get("gender_pref", 0) if preference_satisfied(mentee.get("Preferred Gender"), mentor.get("Gender")) else 0
-    epref = weights.get("eth_pref", 0) if preference_satisfied(mentee.get("Preferred Ethnicity"), mentor.get("Ethnicity")) else 0
-    score += gpref + epref
+    # NEW SCHEMA: Gender preference (mentee side)
+    # "Would you like to be matched with someone of similar gender?"
+    mentee_wants_similar_gender = check_preference_match(
+        mentee.get("Prefer Similar Gender"),
+        mentor.get("Gender"),
+        mentee.get("Gender")
+    )
+    gpref = weights.get("gender_pref", 0) if mentee_wants_similar_gender else 0
+    
+    # Hard mode check for gender preference
+    if prefs_mode == "hard" and not mentee_wants_similar_gender:
+        return -1.0, {}
+    
+    score += gpref
     brk['pref_gender'] = gpref
+
+    # NEW SCHEMA: Ethnicity preference (mentee side)
+    # "Would you like to be matched with someone of similar ethnic demographics?"
+    mentee_wants_similar_ethnicity = check_preference_match(
+        mentee.get("Prefer Similar Ethnicity"),
+        mentor.get("Ethnicity"),
+        mentee.get("Ethnicity")
+    )
+    epref = weights.get("eth_pref", 0) if mentee_wants_similar_ethnicity else 0
+    
+    # Hard mode check for ethnicity preference
+    if prefs_mode == "hard" and not mentee_wants_similar_ethnicity:
+        return -1.0, {}
+    
+    score += epref
     brk['pref_eth'] = epref
 
     # Mentor's preferences count half weight
-    mgpref = 0.5 * weights.get("gender_pref", 0) if preference_satisfied(mentor.get("Preferred Gender"), mentee.get("Gender")) else 0
-    mepref = 0.5 * weights.get("eth_pref", 0) if preference_satisfied(mentor.get("Preferred Ethnicity"), mentee.get("Ethnicity")) else 0
-    score += mgpref + mepref
+    mentor_wants_similar_gender = check_preference_match(
+        mentor.get("Prefer Similar Gender"),
+        mentee.get("Gender"),
+        mentor.get("Gender")
+    )
+    mgpref = 0.5 * weights.get("gender_pref", 0) if mentor_wants_similar_gender else 0
+    score += mgpref
     brk['mentor_pref_gender'] = mgpref
+
+    mentor_wants_similar_ethnicity = check_preference_match(
+        mentor.get("Prefer Similar Ethnicity"),
+        mentee.get("Ethnicity"),
+        mentor.get("Ethnicity")
+    )
+    mepref = 0.5 * weights.get("eth_pref", 0) if mentor_wants_similar_ethnicity else 0
+    score += mepref
     brk['mentor_pref_eth'] = mepref
+
+    # NEW SCHEMA: LGBTQ+ preference matching
+    # "Would you like to be matched with someone from the LGBTQ+ community?"
+    lgbtq_pts = 0
+    mentee_lgbtq_pref = str(mentee.get("Prefer LGBTQ+", "")).strip().lower()
+    mentor_lgbtq_status = str(mentor.get("LGBTQ+", "")).strip().lower()
+    
+    if mentee_lgbtq_pref == "yes" and mentor_lgbtq_status == "yes":
+        lgbtq_pts = weights.get("lgbtq_pref", 0)
+    elif mentee_lgbtq_pref in ("no preference", "no", ""):
+        lgbtq_pts = weights.get("lgbtq_pref", 0) * 0.5  # Partial credit for no preference
+    
+    # Check mentor's LGBTQ+ preference too (half weight)
+    mentor_lgbtq_pref = str(mentor.get("Prefer LGBTQ+", "")).strip().lower()
+    mentee_lgbtq_status = str(mentee.get("LGBTQ+", "")).strip().lower()
+    
+    if mentor_lgbtq_pref == "yes" and mentee_lgbtq_status == "yes":
+        lgbtq_pts += 0.5 * weights.get("lgbtq_pref", 0)
+    elif mentor_lgbtq_pref in ("no preference", "no", ""):
+        lgbtq_pts += 0.25 * weights.get("lgbtq_pref", 0)
+    
+    score += lgbtq_pts
+    brk['lgbtq_pref'] = round(lgbtq_pts, 4)
+
+    # NEW SCHEMA: Availability overlap
+    avail_overlap = calculate_availability_overlap(mentor, mentee)
+    avail_pts = avail_overlap * weights.get("availability_overlap", 0)
+    score += avail_pts
+    brk['availability_overlap'] = round(avail_pts, 4)
 
     # Location match: state
     state_match = str(mentor.get("State","")).strip().lower() == str(mentee.get("State","")).strip().lower()
@@ -179,17 +283,55 @@ def build_match_table(df: pd.DataFrame, sem: SemanticScorer, weights: Dict[str, 
     # Basic validation and cleaning
     df = df.copy()
     # Normalize column names to expected ones if users exported from Google Forms
-    # Expected fields provided by user: Class Year, Email, Gender, Ethnicity, State, Mentee/Mentor, Availability,
-    # School, MBTI, Interests/Hobbies, Goals, Preferred Gender, Preferred Ethnicity, Name
+    # Expected fields: Full Name, Email, Gender, Ethnicity, State, Mentee/Mentor, LGBTQ+,
+    # Availability [Monday-Sunday], School, Class Year, MBTI, Interests/Hobbies, Goals,
+    # Prefer Similar Gender, Prefer Similar Ethnicity, Prefer LGBTQ+, Num Mentees
 
     # Tag mentors without .edu for admin review
     df['mentor_email_is_edu'] = df['Email'].apply(is_edu_email)
-    df['validation_notes'] = df.apply(lambda r: "" if not (str(r.get('Mentee/Mentor')).strip().lower()=='mentor' and not r['mentor_email_is_edu']) else 'Mentor email not .edu', axis=1)
+    
+    # Build validation notes
+    def build_validation_notes(row):
+        notes = []
+        role = str(row.get('Mentee/Mentor', '')).strip().lower()
+        
+        if role == 'mentor':
+            if not row['mentor_email_is_edu']:
+                notes.append('Mentor email not .edu')
+            # Check if mentor has University filled (not High School)
+            if pd.isna(row.get('School')) or not row.get('School'):
+                notes.append('Mentor missing University')
+            # Note: 'School' column should be from 'University' after normalization
+        elif role == 'mentee':
+            # Check if mentee has High School filled (not University)
+            if pd.isna(row.get('School')) or not row.get('School'):
+                notes.append('Mentee missing High School')
+            # Note: 'School' column should be from 'High School' after normalization
+        
+        return '; '.join(notes) if notes else ''
+    
+    df['validation_notes'] = df.apply(build_validation_notes, axis=1)
 
+    # Separate mentors and mentees - only match mentor to mentee, never mentee to mentee
     mentors = df[df['Mentee/Mentor'].str.strip().str.lower() == 'mentor'].reset_index(drop=True)
     mentees = df[df['Mentee/Mentor'].str.strip().str.lower() == 'mentee'].reset_index(drop=True)
+    
+    # Log validation warnings
+    invalid_mentors = mentors[mentors['validation_notes'] != '']
+    invalid_mentees = mentees[mentees['validation_notes'] != '']
+    
+    if len(invalid_mentors) > 0:
+        print(f"[WARN] {len(invalid_mentors)} mentors have validation issues:")
+        for _, m in invalid_mentors.iterrows():
+            print(f"  - {m.get('Name')}: {m['validation_notes']}")
+    
+    if len(invalid_mentees) > 0:
+        print(f"[WARN] {len(invalid_mentees)} mentees have validation issues:")
+        for _, m in invalid_mentees.iterrows():
+            print(f"  - {m.get('Name')}: {m['validation_notes']}")
 
     rows = []
+    # Only iterate mentor x mentee (never mentee x mentee or mentor x mentor)
     for _, me in mentees.iterrows():
         for _, mr in mentors.iterrows():
             s, br = compute_score(mr, me, sem=sem, weights=weights, prefs_mode=prefs_mode)
@@ -202,6 +344,7 @@ def build_match_table(df: pd.DataFrame, sem: SemanticScorer, weights: Dict[str, 
                     'Score': s,
                     'Mentor Email Is EDU': mr.get('mentor_email_is_edu', False),
                     'Validation Notes Mentor': mr.get('validation_notes',''),
+                    'Validation Notes Mentee': me.get('validation_notes',''),
                     'Shared Hobbies (Exact)': ', '.join(sorted(h_mentor & h_mentee for h_mentor, h_mentee in [(parse_list_cell(mr.get('Interests/Hobbies')), parse_list_cell(me.get('Interests/Hobbies')))] ) ) if False else ', '.join(sorted(parse_list_cell(mr.get('Interests/Hobbies')) & parse_list_cell(me.get('Interests/Hobbies')))),
                     'Same School': str(mr.get('School','')).strip().lower() == str(me.get('School','')).strip().lower(),
                     'Year Gap': (abs(int(mr.get('Class Year')) - int(me.get('Class Year'))) if str(mr.get('Class Year')).isdigit() and str(me.get('Class Year')).isdigit() else None),
@@ -305,8 +448,8 @@ def main():
     else:
         raise SystemExit('You must provide either INPUT_CSV or SHEET_ID to load data')
 
-    # Ensure required columns
-    expected = ["Name","Email","Mentee/Mentor","Gender","Ethnicity","State","School","Class Year","MBTI","Interests/Hobbies","Goals","Preferred Gender","Preferred Ethnicity"]
+    # Ensure required columns (updated for new schema)
+    expected = ["Name","Email","Mentee/Mentor","Gender","LGBTQ+","Ethnicity","State","School","Class Year","MBTI","Interests/Hobbies","Goals","Prefer Similar Gender","Prefer Similar Ethnicity","Prefer LGBTQ+"]
     missing = [c for c in expected if c not in df.columns]
     if missing:
         print(f"[WARN] Missing columns. Expected: {expected}. Missing: {missing}")

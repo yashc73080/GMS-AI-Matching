@@ -9,6 +9,10 @@ def normalize_responses(df: pd.DataFrame) -> pd.DataFrame:
         "Email (School or University Email)": "Email",
         "Do you want to be a Mentor or Mentee?": "Mentee/Mentor",
         "How many mentees do you want?": "Num Mentees",
+        "Are you part of the LGBTQ+ community?": "LGBTQ+",
+        "Would you like to be matched with someone of similar ethnic demographics?": "Prefer Similar Ethnicity",
+        "Would you like to be matched with someone of similar gender?": "Prefer Similar Gender",
+        "Would you like to be matched with someone from the LGBTQ+ community?": "Prefer LGBTQ+",
     }
     df = df.rename(columns=rename_map)
 
@@ -36,6 +40,21 @@ def read_google_sheet(sheet_id: str, creds_json: str, worksheet_name: Optional[s
     creds = Credentials.from_service_account_file(creds_json, scopes=scope)
     client = gspread.authorize(creds)
     sh = client.open_by_key(sheet_id)
-    ws = sh.sheet1 if worksheet_name is None else sh.worksheet(worksheet_name)
+    
+    # If no worksheet name is provided, try to find the first worksheet with data
+    if worksheet_name is None:
+        # Try all worksheets and use the first one with data
+        for ws in sh.worksheets():
+            data = ws.get_all_records()
+            if data:  # Found a worksheet with data
+                print(f"[INFO] Reading from worksheet: '{ws.title}'")
+                return pd.DataFrame(data)
+        # If no worksheet has data, fall back to sheet1
+        print(f"[WARN] No worksheets contain data. Using first sheet: '{sh.sheet1.title}'")
+        ws = sh.sheet1
+    else:
+        ws = sh.worksheet(worksheet_name)
+        print(f"[INFO] Reading from worksheet: '{worksheet_name}'")
+    
     data = ws.get_all_records()
     return pd.DataFrame(data)
